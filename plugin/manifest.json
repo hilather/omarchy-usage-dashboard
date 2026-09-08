@@ -48,6 +48,9 @@
         "omp": {
           "enabled": true
         },
+        "muse": {
+          "enabled": true
+        },
         "cursor": {
           "enabled": true
         }
