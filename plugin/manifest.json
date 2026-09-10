@@ -53,6 +53,9 @@
         },
         "cursor": {
           "enabled": true
+        },
+        "devin": {
+          "enabled": true
         }
       },
       "refreshIntervalSec": 900,

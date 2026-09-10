@@ -59,7 +59,8 @@ Scope {
         {key:"opencodeHomes",name:"OpenCode data folders",example:"/mnt/other-computer/.local/share/opencode"},
         {key:"piHomes",name:"Pi agent folders",example:"/mnt/other-computer/.pi/agent"},
         {key:"ompHomes",name:"Oh My Pi agent folders",example:"/mnt/other-computer/.omp/agent"},
-        {key:"museHomes",name:"Muse homes",example:"/mnt/other-computer/.local/share/muse"}]
+        {key:"museHomes",name:"Muse homes",example:"/mnt/other-computer/.local/share/muse"},
+        {key:"devinHomes",name:"Devin data homes",example:"/mnt/other-computer/.local/share/devin"}]
     function providerName(id) { var p = providerOptions.find(p => p.id === id); return p ? p.name : id }
     function colorFor(id) {
         var raw = ({codex: palette.bright_cyan || "#8cd3cb", claude: palette.bright_red || "#db9f9c",
@@ -67,7 +68,8 @@ Scope {
             gemini: palette.bright_magenta || "#c6a0d5", opencode: palette.bright_green || "#a7c080",
             pi: palette.bright_white || "#d4d4d4", omp: palette.red || "#d88b68",
             muse: palette.blue || "#7aa2f7",
-            cursor: palette.magenta || "#c586c0"})[id] || root.ink
+            cursor: palette.magenta || "#c586c0",
+            devin: palette.cyan || "#7dcfff"})[id] || root.ink
         function luminance(c) {
             function linear(v) { return v <= 0.04045 ? v/12.92 : Math.pow((v+0.055)/1.055,2.4) }
             return 0.2126*linear(c.r)+0.7152*linear(c.g)+0.0722*linear(c.b)

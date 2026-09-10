@@ -724,6 +724,149 @@ class CollectorTests(unittest.TestCase):
             again = c.save_settings(config)
             self.assertEqual(again['museHomes'], ['/mounted/.local/share/muse'])
 
+    def devin_message(self, request='req-1', metrics=None, session='s',
+                      created='2026-09-10T21:48:40.474890006+00:00', model='swe-2-high'):
+        if metrics is None:
+            metrics = {'ttft_ms': 5000, 'input_tokens': 193, 'output_tokens': 352,
+                       'cache_read_tokens': 16392, 'cache_creation_tokens': None}
+        meta = {'request_id': request, 'metrics': metrics, 'created_at': created,
+                'generation_model': model, 'num_tokens': metrics.get('output_tokens')}
+        if request is None: del meta['request_id']
+        return json.dumps({'message_id': 'msg-' + str(request), 'role': 'assistant',
+                           'content': 'answer', 'metadata': meta})
+
+    def devin_db(self, name, sessions, nodes):
+        path = self.root / name / 'cli/sessions.db'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        db = sqlite3.connect(path)
+        db.executescript('CREATE TABLE sessions(id TEXT PRIMARY KEY, working_directory TEXT NOT NULL);'
+                         'CREATE TABLE message_nodes(session_id TEXT NOT NULL, node_id INTEGER NOT NULL, chat_message TEXT NOT NULL);')
+        for sid, directory in sessions: db.execute('INSERT INTO sessions VALUES (?,?)', (sid, directory))
+        for sid, node_id, raw in nodes: db.execute('INSERT INTO message_nodes VALUES (?,?,?)', (sid, node_id, raw))
+        db.commit(); db.close()
+        return path
+
+    def test_devin_record_maps_turn_metrics_and_ts(self):
+        r = c.devin_record('sess', '/project', self.devin_message())
+        self.assertEqual((r['provider'], r['session'], r['model'], r['project'], r['client']),
+                         ('devin', 'sess', 'swe-2-high', '/project', 'Devin'))
+        self.assertEqual(r['ts'], int(dt.datetime(2026, 9, 10, 21, 48, 40, tzinfo=dt.timezone.utc).timestamp()))
+        # input_tokens already excludes reused context.
+        self.assertEqual((r['input'], r['output'], r['cacheRead'], r['cacheWrite']), (193, 352, 16392, 0))
+
+    def test_devin_record_skips_rows_without_metrics(self):
+        self.assertIsNone(c.devin_record('s', '', 'not json'))
+        self.assertIsNone(c.devin_record('s', '', json.dumps(['list'])))
+        self.assertIsNone(c.devin_record('s', '', json.dumps({'role': 'user', 'metadata': {'is_user_input': True}})))
+        self.assertIsNone(c.devin_record('s', '', json.dumps({'role': 'assistant', 'metadata': 'not-a-dict'})))
+
+    def test_devin_fallback_key_when_request_id_missing(self):
+        raw = self.devin_message(request=None)
+        r = c.devin_record('sess', '', raw)
+        self.assertTrue(r['id'])
+        again = c.devin_record('sess', '', raw)
+        self.assertEqual(r['id'], again['id'])
+
+    def test_devin_scan_reads_db_dedups_requests_and_survives_rescan(self):
+        self.devin_db('data/devin', [('sess-a', '/project/one')], [
+            ('sess-a', 3, self.devin_message('req-1')),
+            ('sess-a', 8, self.devin_message('req-1')),  # branched copy of the same call
+            ('sess-a', 9, self.devin_message('req-2', metrics={'input_tokens': 10, 'output_tokens': 5})),
+            ('sess-a', 10, json.dumps({'role': 'user', 'metadata': {'is_user_input': True}})),
+            ('orphan', 1, self.devin_message('req-3', session='orphan'))])  # no sessions row
+        ledger = c.Ledger(self.root / 'scan.sqlite')
+        with patch.object(c, 'HOME', self.root), patch.dict('os.environ', {
+                'XDG_DATA_HOME': str(self.root / 'data'), 'CODEX_HOME': str(self.root / 'codex'),
+                'CLAUDE_CONFIG_DIR': str(self.root / 'claude'), 'GROK_HOME': str(self.root / 'grok'),
+                'PI_CODING_AGENT_DIR': str(self.root / 'pi'), 'MUSE_HOME': str(self.root / 'muse')}):
+            ledger.scan(c.DEFAULTS)
+            ledger.scan(c.DEFAULTS)
+        rows = ledger.db.execute("SELECT session,project,input,output,cacheRead FROM events WHERE provider='devin' ORDER BY input").fetchall()
+        self.assertEqual(len(rows), 3)
+        self.assertEqual(rows[0], ('sess-a', '/project/one', 10, 5, 0))
+        self.assertEqual(rows[1], ('sess-a', '/project/one', 193, 352, 16392))
+        self.assertEqual(rows[2][0], 'orphan')  # sessions row absent: project stays empty
+        self.assertEqual(rows[2][1], '')
+        ledger.db.close()
+
+    def devin_status(self, returncode=0, plan='Pro'):
+        import types
+        out = '' if returncode else ('Account:\n  Tier:              Devin ' + plan + '\n  Plan:              ' + plan + '\n')
+        return types.SimpleNamespace(returncode=returncode, stdout=out, stderr='')
+
+    def test_devin_quota_reads_plan_from_auth_status(self):
+        with patch.object(c, 'STATE', self.root / 'state'):
+            with patch.object(c.subprocess, 'run', return_value=self.devin_status(plan='Pro')) as run:
+                quota = c.devin_quota(True)
+                self.assertEqual(run.call_count, 1)
+                self.assertEqual(run.call_args[0][0], ['devin', 'auth', 'status'])
+            self.assertEqual(quota['plan'], 'Pro')
+            self.assertEqual(quota['limits'], [])
+            self.assertIn('ACU', quota['error'])
+            self.assertEqual(c.quota('devin')['plan'], 'Pro')
+            # A second call inside the throttle window reuses the cache.
+            with patch.object(c.subprocess, 'run', return_value=self.devin_status()) as run:
+                self.assertEqual(c.devin_quota()['plan'], 'Pro')
+                run.assert_not_called()
+
+    def test_devin_quota_failures_keep_stale_and_hide_process_detail(self):
+        with patch.object(c, 'STATE', self.root / 'state'):
+            c.atomic_json(c.STATE / 'devin-quota.json', {'plan': 'Team', 'limits': [], 'updatedAt': 'old'})
+            with patch.object(c.subprocess, 'run', side_effect=FileNotFoundError('devin')) as run:
+                quota = c.devin_quota(True)
+            self.assertIn('Devin CLI not found', quota['error'])
+            self.assertEqual(quota['plan'], 'Team')  # retained
+            with patch.object(c.subprocess, 'run', return_value=self.devin_status(returncode=1)):
+                quota = c.devin_quota(True)
+            self.assertIn('devin auth login', quota['error'])
+            with patch.object(c.subprocess, 'run', return_value=self.devin_status(plan='')):
+                quota = c.devin_quota(True)
+            self.assertIn('unrecognized', quota['error'])
+            self.assertNotIn('stderr', json.dumps(quota))
+
+    def test_devin_scan_writes_agent_record_with_plan_tier(self):
+        import contextlib
+        import io as stdlib_io
+        import sys
+        self.devin_db('data/devin', [('sess-a', '/project/one')], [('sess-a', 3, self.devin_message('req-1'))])
+        with patch.object(c, 'STATE', self.root / 'state'), patch.object(c, 'CONFIG', self.root / 'settings.json'), patch.object(c, 'HOME', self.root), patch.dict('os.environ', {
+                'XDG_DATA_HOME': str(self.root / 'data'), 'XDG_CONFIG_HOME': str(self.root / 'config'),
+                'CODEX_HOME': str(self.root / 'codex'), 'CLAUDE_CONFIG_DIR': str(self.root / 'claude'),
+                'GROK_HOME': str(self.root / 'grok'), 'PI_CODING_AGENT_DIR': str(self.root / 'pi'),
+                'MUSE_HOME': str(self.root / 'muse')}), patch.object(
+                c.subprocess, 'run', return_value=self.devin_status(plan='Pro')), patch.object(
+                sys, 'argv', ['collector.py', 'scan']):
+            c.save_settings(c.DEFAULTS | {'enabled': ['devin']})
+            with contextlib.redirect_stdout(stdlib_io.StringIO()):
+                c.main()
+            record = json.loads((c.STATE.parent / 'agents/usage/devin.json').read_text())
+            self.assertEqual(record['tierLabel'], 'Pro')
+            self.assertEqual(record['limits'], [])
+            self.assertEqual(record['totalPrompts'], 1)
+            self.assertIn('ACU', record['usageStatusText'])
+
+    def test_devin_rates_price_catalog_models_and_leave_unpriced(self):
+        with patch.object(c, 'STATE', self.root / 'state'), patch.object(c, 'HOME', self.root):
+            catalog = c.load_rates()['document']
+            sonnet = c.record('d', 'devin', 's', 1, 'claude-sonnet-5-medium', '', 'Devin',
+                              input=1000000, output=1000000, cacheRead=1000000)
+            self.assertAlmostEqual(c.price(sonnet, catalog)[0], 2 + 10 + 0.2)
+            # swe tiers publish no token price; there is no guessed rate.
+            swe = c.record('d', 'devin', 's', 1, 'swe-2-high', '', 'Devin', input=100)
+            self.assertEqual(c.price(swe, catalog), (None, None))
+            # No published cache-write rate exists for Devin models.
+            written = c.record('d', 'devin', 's', 1, 'claude-sonnet-5-medium', '', 'Devin',
+                               input=100, cacheWrite=5)
+            self.assertEqual(c.price(written, catalog), (None, None))
+            self.assertIn('Devin official rates', c.load_rates()['source'])
+
+    def test_devin_settings_round_trip_keeps_home(self):
+        with patch.object(c, 'CONFIG', self.root / 'settings.json'):
+            config = c.save_settings(c.DEFAULTS | {'devinHomes': ['/mounted/.local/share/devin']})
+            self.assertEqual(config['devinHomes'], ['/mounted/.local/share/devin'])
+            again = c.save_settings(config)
+            self.assertEqual(again['devinHomes'], ['/mounted/.local/share/devin'])
+
     def test_pi_and_omp_copied_branches_preserve_spend(self):
         entry = {'type': 'message', 'id': 'short-id', 'timestamp': '2026-09-04T12:00:00Z',
                  'message': {'role': 'assistant', 'model': 'custom', 'provider': 'openrouter',

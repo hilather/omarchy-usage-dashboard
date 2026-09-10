@@ -1,0 +1,1042 @@
+{
+  "source": "Devin CLI devin models list (account model catalog)",
+  "url": "https://docs.devin.ai/cli/models",
+  "verifiedAt": "2026-09-10",
+  "models": {
+    "devin/MODEL_CHAT_GPT_4_1_2025_04_14": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 8e-06,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/MODEL_CLAUDE_4_5_OPUS": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/MODEL_CLAUDE_4_5_OPUS_THINKING": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/MODEL_GOOGLE_GEMINI_3_0_FLASH_HIGH": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 3e-06,
+      "cache_read_input_token_cost": 5.0000000000000004e-08
+    },
+    "devin/MODEL_GOOGLE_GEMINI_3_0_FLASH_LOW": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 3e-06,
+      "cache_read_input_token_cost": 5.0000000000000004e-08
+    },
+    "devin/MODEL_GOOGLE_GEMINI_3_0_FLASH_MEDIUM": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 3e-06,
+      "cache_read_input_token_cost": 5.0000000000000004e-08
+    },
+    "devin/MODEL_GOOGLE_GEMINI_3_0_FLASH_MINIMAL": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 3e-06,
+      "cache_read_input_token_cost": 5.0000000000000004e-08
+    },
+    "devin/MODEL_GPT_5_2_HIGH": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/MODEL_GPT_5_2_LOW": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/MODEL_GPT_5_2_MEDIUM": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/MODEL_GPT_5_2_NONE": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/MODEL_GPT_5_2_XHIGH": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/MODEL_PRIVATE_11": {
+      "input_cost_per_token": 1e-06,
+      "output_cost_per_token": 5e-06,
+      "cache_read_input_token_cost": 1.0000000000000001e-07
+    },
+    "devin/MODEL_PRIVATE_12": {
+      "input_cost_per_token": 1.25e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/MODEL_PRIVATE_13": {
+      "input_cost_per_token": 1.25e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/MODEL_PRIVATE_14": {
+      "input_cost_per_token": 1.25e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/MODEL_PRIVATE_15": {
+      "input_cost_per_token": 1.25e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/MODEL_PRIVATE_2": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/MODEL_PRIVATE_3": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/adaptive": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 2e-06,
+      "cache_read_input_token_cost": 1.0000000000000001e-07
+    },
+    "devin/claude-5-fable-high": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-5-fable-low": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-5-fable-max": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-5-fable-medium": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-5-fable-xhigh": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-fable-5-1-high": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/claude-fable-5-1-low": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/claude-fable-5-1-max": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/claude-fable-5-1-medium": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/claude-fable-5-1-xhigh": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/claude-opus-4-6": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-6-1m": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-6-thinking": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-6-thinking-1m": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-7-high": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-7-low": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-7-max": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-7-medium": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-7-xhigh": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-8-high": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-8-high-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-4-8-low": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-8-low-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-4-8-max": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-8-max-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-4-8-medium": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-8-medium-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-4-8-xhigh": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-4-8-xhigh-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-5-high": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-5-high-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-5-low": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-5-low-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-5-max": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-5-max-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-5-medium": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-5-medium-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-opus-5-xhigh": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 2.5e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/claude-opus-5-xhigh-fast": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/claude-sonnet-4-6": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/claude-sonnet-4-6-1m": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/claude-sonnet-4-6-thinking": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/claude-sonnet-4-6-thinking-1m": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/claude-sonnet-5-high": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/claude-sonnet-5-low": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/claude-sonnet-5-max": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/claude-sonnet-5-medium": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/claude-sonnet-5-xhigh": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/deepseek-v4-1-flash-high": {
+      "input_cost_per_token": 2.2e-07,
+      "output_cost_per_token": 6.6e-07,
+      "cache_read_input_token_cost": 1e-08
+    },
+    "devin/deepseek-v4-1-flash-low": {
+      "input_cost_per_token": 2.2e-07,
+      "output_cost_per_token": 6.6e-07,
+      "cache_read_input_token_cost": 1e-08
+    },
+    "devin/deepseek-v4-1-flash-max": {
+      "input_cost_per_token": 2.2e-07,
+      "output_cost_per_token": 6.6e-07,
+      "cache_read_input_token_cost": 1e-08
+    },
+    "devin/deepseek-v4-flash-high": {
+      "input_cost_per_token": 1.4e-07,
+      "output_cost_per_token": 2.8e-07,
+      "cache_read_input_token_cost": 3e-08
+    },
+    "devin/deepseek-v4-flash-low": {
+      "input_cost_per_token": 1.4e-07,
+      "output_cost_per_token": 2.8e-07,
+      "cache_read_input_token_cost": 3e-08
+    },
+    "devin/deepseek-v4-flash-max": {
+      "input_cost_per_token": 1.4e-07,
+      "output_cost_per_token": 2.8e-07,
+      "cache_read_input_token_cost": 3e-08
+    },
+    "devin/deepseek-v4-pro-high": {
+      "input_cost_per_token": 1.32e-06,
+      "output_cost_per_token": 3.96e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/deepseek-v4-pro-low": {
+      "input_cost_per_token": 1.32e-06,
+      "output_cost_per_token": 3.96e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/deepseek-v4-pro-max": {
+      "input_cost_per_token": 1.32e-06,
+      "output_cost_per_token": 3.96e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gemini-3-1-pro-high": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gemini-3-1-pro-low": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gemini-3-5-flash-high": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 9e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-5-flash-low": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 9e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-5-flash-medium": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 9e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-5-flash-minimal": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 9e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-6-flash-high": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-6-flash-low": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-6-flash-medium": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-6-flash-minimal": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-7-flash-high": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 3.75e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gemini-3-7-flash-low": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 3.75e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gemini-3-7-flash-medium": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 3.75e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gemini-3-8-flash-high": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-8-flash-low": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/gemini-3-8-flash-medium": {
+      "input_cost_per_token": 1.5e-06,
+      "output_cost_per_token": 7.5e-06,
+      "cache_read_input_token_cost": 1.5e-07
+    },
+    "devin/glm-5-2-1m": {
+      "input_cost_per_token": 7e-07,
+      "output_cost_per_token": 2.2e-06,
+      "cache_read_input_token_cost": 1.3e-07
+    },
+    "devin/glm-5-2-max": {
+      "input_cost_per_token": 7e-07,
+      "output_cost_per_token": 2.2e-06,
+      "cache_read_input_token_cost": 1.3e-07
+    },
+    "devin/glm-5-2-max-1m": {
+      "input_cost_per_token": 7e-07,
+      "output_cost_per_token": 2.2e-06,
+      "cache_read_input_token_cost": 1.3e-07
+    },
+    "devin/glm-5-2-none": {
+      "input_cost_per_token": 7e-07,
+      "output_cost_per_token": 2.2e-06,
+      "cache_read_input_token_cost": 1.3e-07
+    },
+    "devin/glm-5-2-none-1m": {
+      "input_cost_per_token": 7e-07,
+      "output_cost_per_token": 2.2e-06,
+      "cache_read_input_token_cost": 1.3e-07
+    },
+    "devin/glm-5-3-flash-high": {
+      "input_cost_per_token": 1.5e-07,
+      "output_cost_per_token": 5e-07,
+      "cache_read_input_token_cost": 3e-08
+    },
+    "devin/glm-5-3-flash-low": {
+      "input_cost_per_token": 1.5e-07,
+      "output_cost_per_token": 5e-07,
+      "cache_read_input_token_cost": 3e-08
+    },
+    "devin/glm-5-3-flash-max": {
+      "input_cost_per_token": 1.5e-07,
+      "output_cost_per_token": 5e-07,
+      "cache_read_input_token_cost": 3e-08
+    },
+    "devin/glm-5-3-high": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/glm-5-3-low": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/glm-5-3-max": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/gpt-5-3-codex-high": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/gpt-5-3-codex-high-priority": {
+      "input_cost_per_token": 3.5e-06,
+      "output_cost_per_token": 2.8e-05,
+      "cache_read_input_token_cost": 3.5e-07
+    },
+    "devin/gpt-5-3-codex-low": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/gpt-5-3-codex-low-priority": {
+      "input_cost_per_token": 3.5e-06,
+      "output_cost_per_token": 2.8e-05,
+      "cache_read_input_token_cost": 3.5e-07
+    },
+    "devin/gpt-5-3-codex-medium": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/gpt-5-3-codex-medium-priority": {
+      "input_cost_per_token": 3.5e-06,
+      "output_cost_per_token": 2.8e-05,
+      "cache_read_input_token_cost": 3.5e-07
+    },
+    "devin/gpt-5-3-codex-xhigh": {
+      "input_cost_per_token": 1.75e-06,
+      "output_cost_per_token": 1.4e-05,
+      "cache_read_input_token_cost": 1.7000000000000001e-07
+    },
+    "devin/gpt-5-3-codex-xhigh-priority": {
+      "input_cost_per_token": 3.5e-06,
+      "output_cost_per_token": 2.8e-05,
+      "cache_read_input_token_cost": 3.5e-07
+    },
+    "devin/gpt-5-4-high": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/gpt-5-4-high-priority": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-4-low": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/gpt-5-4-low-priority": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-4-medium": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/gpt-5-4-medium-priority": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-4-mini-high": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 4.5e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gpt-5-4-mini-low": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 4.5e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gpt-5-4-mini-medium": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 4.5e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gpt-5-4-mini-xhigh": {
+      "input_cost_per_token": 7.5e-07,
+      "output_cost_per_token": 4.5e-06,
+      "cache_read_input_token_cost": 8e-08
+    },
+    "devin/gpt-5-4-none": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/gpt-5-4-none-priority": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-4-xhigh": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 2.5e-07
+    },
+    "devin/gpt-5-4-xhigh-priority": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-5-high": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-5-high-priority": {
+      "input_cost_per_token": 1.25e-05,
+      "output_cost_per_token": 7.5e-05,
+      "cache_read_input_token_cost": 1.25e-06
+    },
+    "devin/gpt-5-5-low": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-5-low-priority": {
+      "input_cost_per_token": 1.25e-05,
+      "output_cost_per_token": 7.5e-05,
+      "cache_read_input_token_cost": 1.25e-06
+    },
+    "devin/gpt-5-5-medium": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-5-medium-priority": {
+      "input_cost_per_token": 1.25e-05,
+      "output_cost_per_token": 7.5e-05,
+      "cache_read_input_token_cost": 1.25e-06
+    },
+    "devin/gpt-5-5-none": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-5-none-priority": {
+      "input_cost_per_token": 1.25e-05,
+      "output_cost_per_token": 7.5e-05,
+      "cache_read_input_token_cost": 1.25e-06
+    },
+    "devin/gpt-5-5-xhigh": {
+      "input_cost_per_token": 5e-06,
+      "output_cost_per_token": 3e-05,
+      "cache_read_input_token_cost": 5e-07
+    },
+    "devin/gpt-5-5-xhigh-priority": {
+      "input_cost_per_token": 1.25e-05,
+      "output_cost_per_token": 7.5e-05,
+      "cache_read_input_token_cost": 1.25e-06
+    },
+    "devin/gpt-5-6-luna-high": {
+      "input_cost_per_token": 2.0000000000000002e-07,
+      "output_cost_per_token": 1.2e-06,
+      "cache_read_input_token_cost": 2e-08
+    },
+    "devin/gpt-5-6-luna-high-priority": {
+      "input_cost_per_token": 4.0000000000000003e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gpt-5-6-luna-low": {
+      "input_cost_per_token": 2.0000000000000002e-07,
+      "output_cost_per_token": 1.2e-06,
+      "cache_read_input_token_cost": 2e-08
+    },
+    "devin/gpt-5-6-luna-low-priority": {
+      "input_cost_per_token": 4.0000000000000003e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gpt-5-6-luna-max": {
+      "input_cost_per_token": 2.0000000000000002e-07,
+      "output_cost_per_token": 1.2e-06,
+      "cache_read_input_token_cost": 2e-08
+    },
+    "devin/gpt-5-6-luna-max-priority": {
+      "input_cost_per_token": 4.0000000000000003e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gpt-5-6-luna-medium": {
+      "input_cost_per_token": 2.0000000000000002e-07,
+      "output_cost_per_token": 1.2e-06,
+      "cache_read_input_token_cost": 2e-08
+    },
+    "devin/gpt-5-6-luna-medium-priority": {
+      "input_cost_per_token": 4.0000000000000003e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gpt-5-6-luna-none": {
+      "input_cost_per_token": 2.0000000000000002e-07,
+      "output_cost_per_token": 1.2e-06,
+      "cache_read_input_token_cost": 2e-08
+    },
+    "devin/gpt-5-6-luna-none-priority": {
+      "input_cost_per_token": 4.0000000000000003e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gpt-5-6-luna-xhigh": {
+      "input_cost_per_token": 2.0000000000000002e-07,
+      "output_cost_per_token": 1.2e-06,
+      "cache_read_input_token_cost": 2e-08
+    },
+    "devin/gpt-5-6-luna-xhigh-priority": {
+      "input_cost_per_token": 4.0000000000000003e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 4e-08
+    },
+    "devin/gpt-5-6-sol-high": {
+      "input_cost_per_token": 1.2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/gpt-5-6-sol-high-priority": {
+      "input_cost_per_token": 8e-06,
+      "output_cost_per_token": 4e-05,
+      "cache_read_input_token_cost": 8.000000000000001e-07
+    },
+    "devin/gpt-5-6-sol-low": {
+      "input_cost_per_token": 1.2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/gpt-5-6-sol-low-priority": {
+      "input_cost_per_token": 8e-06,
+      "output_cost_per_token": 4e-05,
+      "cache_read_input_token_cost": 8.000000000000001e-07
+    },
+    "devin/gpt-5-6-sol-max": {
+      "input_cost_per_token": 1.2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/gpt-5-6-sol-max-priority": {
+      "input_cost_per_token": 8e-06,
+      "output_cost_per_token": 4e-05,
+      "cache_read_input_token_cost": 8.000000000000001e-07
+    },
+    "devin/gpt-5-6-sol-medium": {
+      "input_cost_per_token": 1.2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/gpt-5-6-sol-medium-priority": {
+      "input_cost_per_token": 8e-06,
+      "output_cost_per_token": 4e-05,
+      "cache_read_input_token_cost": 8.000000000000001e-07
+    },
+    "devin/gpt-5-6-sol-none": {
+      "input_cost_per_token": 1.2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/gpt-5-6-sol-none-priority": {
+      "input_cost_per_token": 8e-06,
+      "output_cost_per_token": 4e-05,
+      "cache_read_input_token_cost": 8.000000000000001e-07
+    },
+    "devin/gpt-5-6-sol-xhigh": {
+      "input_cost_per_token": 1.2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/gpt-5-6-sol-xhigh-priority": {
+      "input_cost_per_token": 8e-06,
+      "output_cost_per_token": 4e-05,
+      "cache_read_input_token_cost": 8.000000000000001e-07
+    },
+    "devin/gpt-5-6-terra-high": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gpt-5-6-terra-high-priority": {
+      "input_cost_per_token": 4e-06,
+      "output_cost_per_token": 2.4e-05,
+      "cache_read_input_token_cost": 4.0000000000000003e-07
+    },
+    "devin/gpt-5-6-terra-low": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gpt-5-6-terra-low-priority": {
+      "input_cost_per_token": 4e-06,
+      "output_cost_per_token": 2.4e-05,
+      "cache_read_input_token_cost": 4.0000000000000003e-07
+    },
+    "devin/gpt-5-6-terra-max": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gpt-5-6-terra-max-priority": {
+      "input_cost_per_token": 4e-06,
+      "output_cost_per_token": 2.4e-05,
+      "cache_read_input_token_cost": 4.0000000000000003e-07
+    },
+    "devin/gpt-5-6-terra-medium": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gpt-5-6-terra-medium-priority": {
+      "input_cost_per_token": 4e-06,
+      "output_cost_per_token": 2.4e-05,
+      "cache_read_input_token_cost": 4.0000000000000003e-07
+    },
+    "devin/gpt-5-6-terra-none": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gpt-5-6-terra-none-priority": {
+      "input_cost_per_token": 4e-06,
+      "output_cost_per_token": 2.4e-05,
+      "cache_read_input_token_cost": 4.0000000000000003e-07
+    },
+    "devin/gpt-5-6-terra-xhigh": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 1.2e-05,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/gpt-5-6-terra-xhigh-priority": {
+      "input_cost_per_token": 4e-06,
+      "output_cost_per_token": 2.4e-05,
+      "cache_read_input_token_cost": 4.0000000000000003e-07
+    },
+    "devin/gpt-6-astra-high": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/gpt-6-astra-high-priority": {
+      "input_cost_per_token": 2e-05,
+      "output_cost_per_token": 0.0001,
+      "cache_read_input_token_cost": 2e-06
+    },
+    "devin/gpt-6-astra-low": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/gpt-6-astra-low-priority": {
+      "input_cost_per_token": 2e-05,
+      "output_cost_per_token": 0.0001,
+      "cache_read_input_token_cost": 2e-06
+    },
+    "devin/gpt-6-astra-max": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/gpt-6-astra-max-priority": {
+      "input_cost_per_token": 2e-05,
+      "output_cost_per_token": 0.0001,
+      "cache_read_input_token_cost": 2e-06
+    },
+    "devin/gpt-6-astra-medium": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/gpt-6-astra-medium-priority": {
+      "input_cost_per_token": 2e-05,
+      "output_cost_per_token": 0.0001,
+      "cache_read_input_token_cost": 2e-06
+    },
+    "devin/gpt-6-astra-xhigh": {
+      "input_cost_per_token": 1e-05,
+      "output_cost_per_token": 5e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/gpt-6-astra-xhigh-priority": {
+      "input_cost_per_token": 2e-05,
+      "output_cost_per_token": 0.0001,
+      "cache_read_input_token_cost": 2e-06
+    },
+    "devin/grok-4-5-high": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/grok-4-5-low": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/grok-4-5-medium": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/grok-4-6-high": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/grok-4-6-low": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/grok-4-6-medium": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/grok-4-6-xhigh": {
+      "input_cost_per_token": 2e-06,
+      "output_cost_per_token": 6e-06,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/inkling-high": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/inkling-low": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/inkling-max": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/inkling-medium": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/inkling-none": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/inkling-xhigh": {
+      "input_cost_per_token": 1.4e-06,
+      "output_cost_per_token": 4.4e-06,
+      "cache_read_input_token_cost": 2.6e-07
+    },
+    "devin/kimi-k2-6": {
+      "input_cost_per_token": 9.499999999999999e-07,
+      "output_cost_per_token": 4e-06,
+      "cache_read_input_token_cost": 1.6e-07
+    },
+    "devin/kimi-k2-7": {
+      "input_cost_per_token": 9.499999999999999e-07,
+      "output_cost_per_token": 4e-06,
+      "cache_read_input_token_cost": 1.9e-07
+    },
+    "devin/kimi-k3-high": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/kimi-k3-low": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/kimi-k3-max": {
+      "input_cost_per_token": 3e-06,
+      "output_cost_per_token": 1.5e-05,
+      "cache_read_input_token_cost": 3e-07
+    },
+    "devin/nemotron-3-ultra-high": {
+      "input_cost_per_token": 6e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/nemotron-3-ultra-medium": {
+      "input_cost_per_token": 6e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/nemotron-3-ultra-none": {
+      "input_cost_per_token": 6e-07,
+      "output_cost_per_token": 2.4e-06,
+      "cache_read_input_token_cost": 1.2e-07
+    },
+    "devin/swe-1-6": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 2.5e-06,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/swe-1-6-fast": {
+      "input_cost_per_token": 5e-07,
+      "output_cost_per_token": 2.5e-06,
+      "cache_read_input_token_cost": 2.0000000000000002e-07
+    },
+    "devin/swe-1-7-lightning": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.25e-05,
+      "cache_read_input_token_cost": 1e-06
+    },
+    "devin/swe-1-7-lightning-medium": {
+      "input_cost_per_token": 2.5e-06,
+      "output_cost_per_token": 1.25e-05,
+      "cache_read_input_token_cost": 1e-06
+    }
+  }
+}

@@ -25,8 +25,9 @@ HOME = Path.home()
 STATE = Path(os.getenv('XDG_STATE_HOME', HOME / '.local/state')) / 'omarchy/ai-usage'
 CONFIG = Path(os.getenv('XDG_CONFIG_HOME', HOME / '.config')) / 'omarchy/ai-usage/settings.json'
 PROVIDERS = {'codex': 'Codex', 'claude': 'Claude', 'opencode-go': 'OpenCode Go', 'grok': 'Grok Build',
-             'gemini': 'Gemini CLI', 'opencode': 'OpenCode', 'pi': 'Pi', 'omp': 'Oh My Pi', 'muse': 'Muse', 'cursor': 'Cursor'}
-HOME_KEYS = ('codexHomes', 'claudeHomes', 'grokHomes', 'geminiHomes', 'opencodeHomes', 'piHomes', 'ompHomes', 'museHomes')
+             'gemini': 'Gemini CLI', 'opencode': 'OpenCode', 'pi': 'Pi', 'omp': 'Oh My Pi', 'muse': 'Muse', 'cursor': 'Cursor',
+             'devin': 'Devin'}
+HOME_KEYS = ('codexHomes', 'claudeHomes', 'grokHomes', 'geminiHomes', 'opencodeHomes', 'piHomes', 'ompHomes', 'museHomes', 'devinHomes')
 DEFAULTS = {'enabled': ['codex', 'claude', 'opencode-go'], 'monthlyPrices': {},
             **{key: [] for key in HOME_KEYS}, 'accounts': [], 'localAccountLabel': 'Local', 'windowOpacity': 0.985}
 FIELDS = ('input', 'output', 'cacheRead', 'cacheWrite', 'cacheWrite1h', 'reasoning')
@@ -530,6 +531,25 @@ def opencode_record(mid, sid, ts, project, model, route, usage, cost):
     return r
 
 
+def devin_record(session, project, raw):
+    try: message = json.loads(raw)
+    except (ValueError, TypeError): return None
+    if not isinstance(message, dict): return None
+    meta = message.get('metadata')
+    if not isinstance(meta, dict): return None
+    usage = meta.get('metrics')
+    if not isinstance(usage, dict): return None
+    rid = meta.get('request_id') or message.get('message_id')
+    # Branched message trees copy a turn into a second node; the request ID is
+    # shared, so copies merge. Without one, fall back to position and usage.
+    key = digest('devin', rid) if rid else digest('devin', session, meta.get('created_at'), usage)
+    # input_tokens already excludes reused context, matching the CLI's own
+    # "Input tokens" dimension. Cache creation is not reported separately.
+    return record(key, 'devin', session, meta.get('created_at'), meta.get('generation_model'),
+                  project, 'Devin', input=usage.get('input_tokens'), output=usage.get('output_tokens'),
+                  cacheRead=usage.get('cache_read_tokens'), cacheWrite=usage.get('cache_creation_tokens'))
+
+
 class Ledger:
     def __init__(self, path):
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -646,6 +666,30 @@ class Ledger:
                                 item.get('modelID'), item.get('providerID'), item.get('tokens') or {}, item.get('cost')), path.resolve())
                     except (OSError, ValueError, TypeError, AttributeError):
                         source['readErrors'] = source.get('readErrors', 0) + 1
+        devin_roots = [str(Path(os.getenv('XDG_DATA_HOME', HOME / '.local/share')) / 'devin')] + cfg.get('devinHomes', [])
+        for root in sorted(set(devin_roots)):
+            root = Path(root).expanduser()
+            devin = root / 'cli/sessions.db'
+            source = {'provider': 'devin', 'path': str(devin), 'files': int(devin.exists()), 'exists': devin.exists(), 'kind': 'database'}
+            sources.append(source)
+            if devin.exists():
+                conn = None
+                try:
+                    conn = sqlite3.connect(devin.resolve().as_uri() + '?mode=ro', uri=True, timeout=3)
+                    # Assistant turns carry per-call token metrics. request_id
+                    # deduplicates copies shared across branched node chains.
+                    query = """SELECT m.session_id,s.working_directory,m.chat_message
+                      FROM message_nodes m LEFT JOIN sessions s ON s.id=m.session_id
+                      WHERE json_extract(m.chat_message,'$.role')='assistant'
+                        AND json_extract(m.chat_message,'$.metadata.metrics') IS NOT NULL"""
+                    for sid, project, raw in conn.execute(query):
+                        r = devin_record(sid, project, raw)
+                        if r: self.put(r, devin.resolve())
+                except (sqlite3.Error, ValueError, TypeError, AttributeError):
+                    source['readErrors'] = 1
+                    warnings.append('Devin database could not be read; retained previous records.')
+                finally:
+                    if conn is not None: conn.close()
         if 'cursor' in cfg.get('enabled', []):
             csource, cwarnings = cursor_usage(self)
             sources.append(csource)
@@ -669,7 +713,8 @@ def load_rates():
         data = {'document': {}, 'source': 'Pricing catalog unavailable', 'fetchedAtMs': None}
     else:
         data.setdefault('source', 'Bundled pricing catalog')
-    for name, label in [('pricing.json', 'OpenCode Go official rates'), ('muse-pricing.json', 'Muse official rates')]:
+    for name, label in [('pricing.json', 'OpenCode Go official rates'), ('muse-pricing.json', 'Muse official rates'),
+                        ('devin-pricing.json', 'Devin official rates')]:
         try:
             official = json.loads(Path(__file__).with_name(name).read_text())
             if not isinstance(official.get('models'), dict): raise ValueError('Invalid override')
@@ -770,12 +815,13 @@ def go_quota(force=False):
 def quota(provider):
     if provider in ('opencode', 'pi', 'omp'):
         return {'limits': [], 'error': 'Account limits belong to the underlying provider and are not collected here.'}
-    if provider in ('opencode-go', 'grok', 'muse', 'cursor'):
-        names = {'opencode-go': 'go-quota.json', 'grok': 'grok-quota.json', 'muse': 'muse-quota.json', 'cursor': 'cursor-quota.json'}
+    if provider in ('opencode-go', 'grok', 'muse', 'cursor', 'devin'):
+        names = {'opencode-go': 'go-quota.json', 'grok': 'grok-quota.json', 'muse': 'muse-quota.json',
+                 'cursor': 'cursor-quota.json', 'devin': 'devin-quota.json'}
         try: d = json.loads((STATE / names[provider]).read_text())
         except (OSError, ValueError): d = {}
         result = {'limits': d.get('limits', []), 'updatedAt': d.get('updatedAt'), 'error': d.get('error', '')}
-        if provider == 'muse': result['plan'] = d.get('plan', '')
+        if provider in ('muse', 'devin'): result['plan'] = d.get('plan', '')
         return result
     p = STATE.parent / 'agents/usage' / (provider + '.json')
     try:
@@ -944,6 +990,33 @@ def muse_quota(force=False):
     return cached
 
 
+def devin_quota(force=False):
+    path = STATE / 'devin-quota.json'
+    try: cached = json.loads(path.read_text())
+    except (OSError, ValueError): cached = {}
+    if not force and time.time() - cached.get('attemptedAt', 0) < 300: return cached
+    try:
+        # Devin bills in ACUs under the account plan; there are no per-login
+        # quota windows to report. `devin auth status` supplies the plan tier
+        # only. Stderr may echo the session, so it is captured and discarded.
+        proc = subprocess.run(['devin', 'auth', 'status'], capture_output=True, text=True, timeout=10)
+        if proc.returncode != 0: raise QuotaUnavailable('Devin sign-in not found. Run devin auth login to show your plan.')
+        plan = ''
+        for line in proc.stdout.splitlines():
+            name, _, value = line.partition(':')
+            if name.strip() == 'Plan' and value.strip(): plan = value.strip()
+        if not plan: raise ValueError('Devin returned an unrecognized status response.')
+        cached = {'limits': [], 'updatedAt': dt.datetime.now(dt.timezone.utc).isoformat(),
+                  'error': 'Devin bills usage in ACUs under the account plan; no local quota is collected.',
+                  'plan': plan}
+    except Exception as exc:
+        if isinstance(exc, FileNotFoundError): exc = QuotaUnavailable('Devin CLI not found on PATH; install it or sign in to show your plan.')
+        cached['error'] = str(exc) if isinstance(exc, (QuotaUnavailable, ValueError)) else 'Devin status unavailable. Check your Devin login.'
+    cached['attemptedAt'] = time.time()
+    atomic_json(path, cached)
+    return cached
+
+
 def account_assignments(ledger, cfg):
     labels = {'local': cfg.get('localAccountLabel', 'Local'), 'unassigned': 'Unassigned history', 'conflict': 'Needs review'}
     roots = []
@@ -1070,7 +1143,7 @@ def write_agent_record(ledger, provider):
     today_data = next((x['providers'][provider] for x in data['daily'] if x['date'] == today), finish(bucket()))
     record_data = {'schemaVersion': 1, 'id': provider, 'name': PROVIDERS[provider],
        'updatedAt': q.get('updatedAt'), 'ready': bool(q.get('limits') or total_records), 'hasLocalStats': True,
-       'hasPromptStats': False, 'tierLabel': 'Go' if provider == 'opencode-go' else q.get('plan', '') if provider == 'muse' else '', 'limits': q.get('limits', []), 'usageStatusText': q.get('error', ''),
+       'hasPromptStats': False, 'tierLabel': 'Go' if provider == 'opencode-go' else q.get('plan', '') if provider in ('muse', 'devin') else '', 'limits': q.get('limits', []), 'usageStatusText': q.get('error', ''),
        'todayTotalTokens': today_data['tokens'], 'todayPrompts': today_data['requests'], 'todaySessions': today_data['sessions'],
        'totalPrompts': total_records, 'totalSessions': total_sessions,
        'activeDays': len(active_dates), 'activeDates': active_dates,
@@ -1117,6 +1190,9 @@ def main():
             if args.action == 'scan' and 'muse' in cfg['enabled']:
                 muse_quota(args.force)
                 write_agent_record(ledger, 'muse')
+            if args.action == 'scan' and 'devin' in cfg['enabled']:
+                devin_quota(args.force)
+                write_agent_record(ledger, 'devin')
             if args.action == 'scan':
                 for p in ('gemini', 'opencode', 'pi', 'omp', 'cursor'):
                     if p in cfg['enabled']: write_agent_record(ledger, p)

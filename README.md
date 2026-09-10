@@ -63,6 +63,7 @@ Both install options run without sudo and keep working if you move or delete the
 | Pi / Oh My Pi | Saved assistant usage | Not collected |
 | Muse | Completed model responses, including subagents | From the existing Muse login |
 | Cursor | Cloud usage events (tokens and list-price cost per model) | Billing-cycle usage from your Cursor sign-in |
+| Devin | Assistant turns from the local session database | Plan tier from `devin auth status`; ACU usage is not collected |
 
 Sources with recorded history appear automatically on a fresh install. Use **Settings** to choose which ones to show. OpenCode Go uses your existing API key; no cookie setup is needed. If Grok authentication expires, run `grok login`.
 
