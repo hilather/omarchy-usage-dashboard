@@ -21,14 +21,22 @@ Panel {
   readonly property var providers: usage.enabledProviders
   // The selection follows the provider, not the slot it happens to sit in: a
   // provider whose first scan lands while the panel is open would otherwise
-  // shift the list underneath you and swap out what you were reading.
-  property string selectedProviderId: ""
+  // shift the list underneath you and swap out what you were reading. "all"
+  // is a synthetic first tab: the overview every open lands on.
+  property string selectedProviderId: "all"
+  readonly property bool allView: selectedProviderId === "all"
+  readonly property var tabs: [{providerId: "all", providerName: "All"}].concat(providers)
+  readonly property int tabIndex: {
+    for (var i = 0; i < tabs.length; i++)
+      if (tabs[i].providerId === selectedProviderId) return i
+    return 0
+  }
   readonly property int providerIndex: {
     for (var i = 0; i < providers.length; i++)
       if (providers[i].providerId === selectedProviderId) return i
     return 0
   }
-  readonly property var provider: providers.length > 0 ? providers[providerIndex] : null
+  readonly property var provider: !allView && providers.length > 0 ? providers[providerIndex] : null
 
   property bool cursorActive: false
 
@@ -55,9 +63,9 @@ Panel {
   function alpha(c, a) { return Qt.rgba(c.r, c.g, c.b, a) }
 
   function selectProvider(index) {
-    if (providers.length === 0) return
-    var wrapped = ((index % providers.length) + providers.length) % providers.length
-    selectedProviderId = providers[wrapped].providerId
+    if (tabs.length === 0) return
+    var wrapped = ((index % tabs.length) + tabs.length) % tabs.length
+    selectedProviderId = tabs[wrapped].providerId
   }
 
   function refreshNow() {
@@ -307,9 +315,11 @@ Panel {
   implicitHeight: button.implicitHeight
 
   onProviderIndexChanged: if (panelFlick) panelFlick.contentY = 0
+  onAllViewChanged: if (panelFlick) panelFlick.contentY = 0
   onOpenedChanged: if (opened) {
     cursorActive = false
     nowMs = Date.now()
+    selectedProviderId = "all"
     if (panelFlick) panelFlick.contentY = 0
     usage.refreshLimits()
     Qt.callLater(function() { keyCatcher.forceActiveFocus() })
@@ -337,7 +347,7 @@ Panel {
     function hide(): void { root.close() }
     function toggle(): void { root.toggle() }
     function refresh(): string { root.refreshNow(); return "ok" }
-    function next(): string { root.selectProvider(root.providerIndex + 1); return "ok" }
+    function next(): string { root.selectProvider(root.tabIndex + 1); return "ok" }
   }
 
   BarIconButton {
@@ -348,7 +358,7 @@ Panel {
     active: root.alarming
     onPressed: function(buttonCode) {
       if (buttonCode === Qt.RightButton) root.launchAgent()
-      else if (buttonCode === Qt.MiddleButton) root.selectProvider(root.providerIndex + 1)
+      else if (buttonCode === Qt.MiddleButton) root.selectProvider(root.tabIndex + 1)
       else root.toggle()
     }
   }
@@ -372,7 +382,7 @@ Panel {
       onMoveRequested: function(dx, dy) {
         if (dx !== 0) {
           root.cursorActive = true
-          root.selectProvider(root.providerIndex + dx)
+          root.selectProvider(root.tabIndex + dx)
         }
         if (dy !== 0)
           panelFlick.contentY = root.clamp(panelFlick.contentY + dy * Style.space(56), 0,
@@ -481,16 +491,16 @@ Panel {
           // ---------- Provider switch ----------
           Row {
             id: providerSwitch
-            visible: root.providers.length > 1
+            visible: root.providers.length > 0
             width: parent.width
             spacing: Style.spacing.md
 
-            readonly property real cellWidth: root.providers.length > 0
-              ? (width - spacing * (root.providers.length - 1)) / root.providers.length
+            readonly property real cellWidth: root.tabs.length > 0
+              ? (width - spacing * (root.tabs.length - 1)) / root.tabs.length
               : 0
 
             Repeater {
-              model: root.providers
+              model: root.tabs
 
               Button {
                 required property var modelData
@@ -498,8 +508,8 @@ Panel {
 
                 width: providerSwitch.cellWidth
                 text: modelData.providerName
-                selected: index === root.providerIndex
-                hasCursor: root.cursorActive && index === root.providerIndex
+                selected: modelData.providerId === root.selectedProviderId
+                hasCursor: root.cursorActive && index === root.tabIndex
                 bordered: true
                 foreground: root.foreground
                 fontFamily: root.fontFamily
@@ -510,6 +520,31 @@ Panel {
                   root.selectProvider(index)
                 }
                 onHovered: function(isHovered) { if (isHovered) root.cursorActive = true }
+              }
+            }
+          }
+
+          // ---------- All providers ----------
+          Column {
+            id: allSection
+            visible: root.allView && root.providers.length > 0
+            width: parent.width
+            spacing: Style.space(12)
+
+            PanelSectionHeader {
+              width: parent.width
+              text: "ALL PROVIDERS"
+              foreground: root.foreground
+              fontFamily: root.fontFamily
+            }
+
+            Repeater {
+              model: root.providers
+
+              AllProviderBlock {
+                required property var modelData
+                width: allSection.width
+                provider: modelData
               }
             }
           }
@@ -722,6 +757,128 @@ Panel {
           }
         }
       }
+    }
+  }
+
+  // One provider in the All overview: name and today's tokens, then every
+  // quota window (or the prepaid balance, or the collector's note when it
+  // reports neither). The header drills into that provider's detail view.
+  component AllProviderBlock: Column {
+    id: allBlock
+    property var provider: null
+
+    spacing: Style.space(6)
+
+    readonly property var windows: root.limitWindows(allBlock.provider)
+    readonly property var balance: allBlock.provider ? (allBlock.provider.balance || null) : null
+    readonly property bool balanceLow: !!balance && balance.funded > 0 && balance.remaining / balance.funded <= 0.1
+
+    Item {
+      width: parent.width
+      implicitHeight: Math.max(allName.implicitHeight, allToday.implicitHeight)
+
+      Rectangle {
+        anchors.fill: parent
+        anchors.leftMargin: -Style.space(4)
+        anchors.rightMargin: -Style.space(4)
+        radius: Style.cornerRadius
+        color: root.alpha(root.foreground, allHover.containsMouse ? 0.08 : 0)
+      }
+
+      Text {
+        id: allName
+        text: {
+          if (!allBlock.provider) return ""
+          var tier = String(allBlock.provider.tierLabel || "")
+          return allBlock.provider.providerName + (tier === "" ? "" : "  ·  " + tier)
+        }
+        color: root.foreground
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.body
+        font.bold: true
+        elide: Text.ElideRight
+        anchors.left: parent.left
+        anchors.right: allToday.left
+        anchors.rightMargin: Style.space(8)
+        anchors.verticalCenter: parent.verticalCenter
+      }
+
+      Text {
+        id: allToday
+        text: allBlock.provider ? usage.formatTokenCount(Number(allBlock.provider.todayTotalTokens || 0)) : ""
+        color: root.dim
+        font.family: root.fontFamily
+        font.pixelSize: Style.font.caption
+        font.bold: true
+        anchors.right: parent.right
+        anchors.verticalCenter: parent.verticalCenter
+      }
+
+      MouseArea {
+        id: allHover
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+          root.cursorActive = true
+          root.selectedProviderId = allBlock.provider ? allBlock.provider.providerId : "all"
+        }
+      }
+
+      PanelToolTip {
+        visible: allHover.containsMouse
+        text: allBlock.provider ? "Open " + allBlock.provider.providerName : ""
+        fontFamily: root.fontFamily
+      }
+    }
+
+    Repeater {
+      model: allBlock.windows
+
+      LimitRow {
+        required property var modelData
+        width: allBlock.width
+        window: modelData
+      }
+    }
+
+    Text {
+      visible: !!allBlock.balance
+      width: parent.width
+      text: allBlock.balance
+        ? "Prepaid " + root.formatMoney(allBlock.balance.remaining, allBlock.balance.currency)
+          + " remaining" + (allBlock.balance.funded > 0 ? " of " + root.formatMoney(allBlock.balance.funded, allBlock.balance.currency) : "")
+        : ""
+      color: allBlock.balanceLow ? root.urgent : root.dim
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      wrapMode: Text.WordWrap
+    }
+
+    Text {
+      visible: text !== "" && allBlock.windows.length === 0 && !allBlock.balance
+      width: parent.width
+      text: allBlock.provider ? String(allBlock.provider.usageStatusText || "") : ""
+      color: root.dim
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
+      wrapMode: Text.WordWrap
+    }
+
+    Text {
+      visible: text !== ""
+      width: parent.width
+      text: {
+        var p = allBlock.provider
+        if (!p) return ""
+        var text = "Today " + usage.formatTokenCount(Number(p.todayTotalTokens || 0)) + " tokens"
+        if (p.hasPromptStats !== false)
+          text += " · " + Number(p.todayPrompts || 0) + " prompts · " + Number(p.todaySessions || 0) + " sessions"
+        return text
+      }
+      color: root.dim
+      font.family: root.fontFamily
+      font.pixelSize: Style.font.caption
     }
   }
 
