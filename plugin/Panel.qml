@@ -489,15 +489,34 @@ Panel {
           }
 
           // ---------- Provider switch ----------
-          Row {
+          Flow {
             id: providerSwitch
             visible: root.providers.length > 0
             width: parent.width
             spacing: Style.spacing.md
 
-            readonly property real cellWidth: root.tabs.length > 0
-              ? (width - spacing * (root.tabs.length - 1)) / root.tabs.length
-              : 0
+            // Cells stay equal-width, but when the widest label would spill
+            // its border the row wraps onto extra rows of fewer, wider cells
+            // instead. Measured bold because the selected tab paints bold.
+            FontMetrics {
+              id: tabMetrics
+              font.family: root.fontFamily
+              font.pixelSize: Style.font.bodySmall
+              font.bold: true
+            }
+
+            readonly property real naturalCellWidth: {
+              var w = 0
+              for (var i = 0; i < root.tabs.length; i++)
+                w = Math.max(w, tabMetrics.advanceWidth(String(root.tabs[i].providerName || "")))
+              return w + Style.spacing.controlPaddingX * 2 + 4
+            }
+            readonly property int columns: {
+              var n = root.tabs.length
+              if (n === 0 || width <= 0 || naturalCellWidth <= 0) return 1
+              return Math.max(1, Math.min(n, Math.floor((width + spacing) / (naturalCellWidth + spacing))))
+            }
+            readonly property real cellWidth: (width - spacing * (columns - 1)) / columns
 
             Repeater {
               model: root.tabs
