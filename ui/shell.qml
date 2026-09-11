@@ -51,6 +51,36 @@ Scope {
     property var draftAccounts: []
     property string draftLocalLabel: "Local"
     property string saveError: ""
+    // null = auto: collapse the secondary sections only when the window is
+    // short. A list means the user chose which sections are collapsed.
+    property var collapsedSections: null
+    readonly property bool autoCollapse: window.height > 0 && window.height < 800
+    function autoCollapsed() { return autoCollapse ? ["breakdown", "heatmap", "coverage"] : [] }
+    function isCollapsed(key) { return (collapsedSections !== null ? collapsedSections : autoCollapsed()).indexOf(key) >= 0 }
+    property bool pendingUiSave: false
+    function toggleCollapsed(key) {
+        var saved = data && data.settings ? data.settings.collapsedSections : undefined
+        var next = (collapsedSections !== null ? collapsedSections
+            : Array.isArray(saved) ? saved : autoCollapsed()).slice()
+        var i = next.indexOf(key)
+        if (i >= 0) next.splice(i, 1); else next.push(key)
+        collapsedSections = next
+        persistCollapsed()
+    }
+    // A running saveUi would ignore a new command, so defer instead and let
+    // onExited flush the latest state — last write wins.
+    function persistCollapsed() {
+        if (!data || !data.settings || saveUi.running) { pendingUiSave = true; return }
+        pendingUiSave = false
+        saveUi.command = ["python3", helper, "settings", "--merge", "--save=" + JSON.stringify({collapsedSections: collapsedSections})]
+        saveUi.running = true
+    }
+    onDataChanged: {
+        var saved = data && data.settings ? data.settings.collapsedSections : undefined
+        if (collapsedSections === null && Array.isArray(saved))
+            collapsedSections = saved
+        if (pendingUiSave) persistCollapsed()
+    }
     property var homeOptions: [
         {key:"codexHomes",name:"Codex homes",example:"/mnt/other-computer/.codex"},
         {key:"claudeHomes",name:"Claude homes",example:"/mnt/other-computer/.claude"},
@@ -135,7 +165,7 @@ Scope {
             prices[p] = n
         }
         saveError = ""
-        var s = {accounts: draftAccounts, localAccountLabel: draftLocalLabel, enabled: draftEnabled, monthlyPrices: prices, windowOpacity: opacitySlider.value}
+        var s = {accounts: draftAccounts, localAccountLabel: draftLocalLabel, enabled: draftEnabled, monthlyPrices: prices, windowOpacity: opacitySlider.value, collapsedSections: root.collapsedSections}
         homeOptions.forEach(h => s[h.key] = (draftHomes[h.key] || "").split("\n").filter(x => x.trim()).map(x => x.trim()))
         save.command = ["python3", helper, "settings", "--save", JSON.stringify(s)]
         save.running = true
@@ -155,8 +185,17 @@ Scope {
         id: save
         stdout: StdioCollector { onStreamFinished: { try { root.saveError = JSON.parse(text).error || "" } catch(e) {} } }
         onExited: function(code) {
-            if (code === 0) { root.settingsOpen = false; root.selection = ({}); root.navigation = []; root.provider = "all"; root.notice = "Settings saved"; root.refresh() }
+            if (code === 0) { root.settingsOpen = false; root.selection = ({}); root.navigation = []; root.provider = "all"; root.notice = "Settings saved"; root.persistCollapsed(); root.refresh() }
             else root.notice = root.saveError || "Settings could not be saved."
+        }
+    }
+    Process {
+        id: saveUi
+        stdout: StdioCollector { onStreamFinished: { try { var e = JSON.parse(text).error; if (e) root.notice = "Section state could not be saved: " + e } catch(_) {} } }
+        stderr: StdioCollector { onStreamFinished: { if (text.trim()) console.warn(text.trim()) } }
+        onExited: function(code) {
+            if (code !== 0 && !root.notice) root.notice = "Section state could not be saved."
+            if (root.pendingUiSave) root.persistCollapsed()
         }
     }
     Process {
@@ -259,6 +298,59 @@ Scope {
             }
         }
     }
+    component SectionHeader: Item {
+        id: sectionHeader
+        property string title: ""
+        property string hint: ""
+        property string sectionKey: ""
+        implicitHeight: 30
+        implicitWidth: sectionHeaderRow.implicitWidth
+        Rectangle {
+            anchors.fill: parent
+            radius: 3
+            color: sectionHeaderHover.hovered ? Qt.alpha(root.ink, 0.05) : "transparent"
+        }
+        RowLayout {
+            id: sectionHeaderRow
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 10
+            Label { text: sectionHeader.title; font.pixelSize: 15; font.weight: Font.DemiBold }
+            Item { Layout.fillWidth: true }
+            Sub { text: sectionHeader.hint; visible: text !== ""; elide: Text.ElideRight; Layout.maximumWidth: Math.max(0, sectionHeader.width * 0.6) }
+            Label { text: root.isCollapsed(sectionHeader.sectionKey) ? "▸" : "▾"; color: root.muted }
+        }
+        HoverHandler { id: sectionHeaderHover; cursorShape: Qt.PointingHandCursor }
+        TapHandler { enabled: root.data !== null; onTapped: root.toggleCollapsed(sectionHeader.sectionKey) }
+    }
+    // A card whose body can collapse to just its header row. Declared
+    // children land inside the collapsible body via the default alias.
+    component SectionCard: Card {
+        id: sectionCard
+        property string title: ""
+        property string hint: ""
+        property string sectionKey: ""
+        default property alias contentChildren: sectionBody.data
+        height: sectionLayout.implicitHeight + 36
+        Column {
+            id: sectionLayout
+            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 18
+            spacing: 10
+            SectionHeader {
+                width: sectionLayout.width
+                title: sectionCard.title
+                hint: sectionCard.hint
+                sectionKey: sectionCard.sectionKey
+            }
+            Column {
+                id: sectionBody
+                width: sectionLayout.width
+                spacing: 10
+                visible: !root.isCollapsed(sectionCard.sectionKey)
+            }
+        }
+    }
     component QuietScrollBar: ScrollBar {
         id: control
         policy: ScrollBar.AsNeeded
@@ -304,8 +396,8 @@ Scope {
         ColumnLayout {
             id: dashboardBody
             anchors.fill: parent
-            anchors.margins: 26
-            spacing: 18
+            anchors.margins: 20
+            spacing: 14
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
@@ -369,24 +461,24 @@ Scope {
                 clip: true
                 Column {
                     width: scroll.availableWidth
-                    spacing: 18
+                    spacing: 12
                     Card {
-                        width: parent.width; height: pricingNote.implicitHeight + 28
+                        width: parent.width; height: pricingNote.implicitHeight + 24
                         Column {
                             id: pricingNote
-                            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 14; spacing: 6
+                            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 12; spacing: 4
                             Label { width: parent.width; wrapMode: Text.WordWrap; text: root.data ? (root.data.summary.tokens === 0 ? "No activity in this period. Add a history folder in Settings or use a supported coding agent." : root.data.summary.unpricedTokens ? root.compact(root.data.summary.unpricedTokens)+" tokens have no complete price. API value is a partial estimate." : "All recorded tokens in this view have an API-value estimate.") : "Checking pricing coverage…"; color: root.data && root.data.summary.unpricedTokens ? root.colorFor("claude") : root.ink }
                             Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.data ? "History on "+(root.data.coverage.machine || "this computer")+" · scanned "+root.when(root.data.coverage.scannedAt)+" · "+(root.data.pricing.coveragePercent===null ? "No activity" : (root.data.summary.unpricedTokens && root.data.pricing.coveragePercent>99.9 ? ">99.9" : root.data.pricing.coveragePercent.toFixed(1))+"% of tokens priced") : "" }
                         }
                     }
                     RowLayout {
-                        width: parent.width; spacing: 18
+                        width: parent.width; spacing: 12
                         Card {
-                            Layout.preferredWidth: 320; Layout.fillHeight: true; implicitHeight: 330
+                            Layout.preferredWidth: 320; Layout.fillHeight: true; implicitHeight: 250
                             Column {
-                                anchors.fill: parent; anchors.margins: 22; spacing: 12
+                                anchors.fill: parent; anchors.margins: 18; spacing: 10
                                 Sub { text: root.metric === "tokens" ? "PROCESSED TOKENS" : "ESTIMATED API VALUE"; font.letterSpacing: 1.2 }
-                                Label { text: root.data ? root.display(root.data.summary) : "…"; font.pixelSize: 36; font.weight: Font.Medium }
+                                Label { text: root.data ? root.display(root.data.summary) : "…"; font.pixelSize: 30; font.weight: Font.Medium }
                                 Sub { text: root.data ? root.data.summary.sessions + " sessions · " + root.compact(root.data.summary.requests) + " usage records" + (root.metric === "value" && root.data.summary.unpricedTokens ? " · partial value" : "") : "Scanning local history" }
                                 Rectangle { width: parent.width; height: 1; color: root.edge }
                                 Label {
@@ -401,7 +493,7 @@ Scope {
                                 }
                                 Label { width: parent.width; wrapMode: Text.WordWrap; text: root.data && root.data.summary.tokens ? (root.data.summary.cacheRead/root.data.summary.tokens*100).toFixed(1)+"% cached input reused" : "No recorded tokens"; color: root.colorFor("codex") }
                                 Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.data ? root.compact(root.data.summary.output)+" output tokens, including reasoning" : "" }
-                                Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.metric === "tokens" ? "Processed tokens count reused context on every request. This is not a count of unique text." : "Catalog rates or the app’s recorded API estimate. This is not your bill." }
+                                Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.metric === "tokens" ? "Counts reused context on every request — not unique text." : "Catalog rates or recorded estimates — not your bill." }
                             }
                         }
                         Card {
@@ -496,58 +588,74 @@ Scope {
                             }
                         }
                     }
-                    GridLayout {
-                        width: parent.width; columns: root.data ? (root.data.providers.length > 3 ? 2 : Math.max(1,root.data.providers.length)) : 3; rowSpacing: 14; columnSpacing: 14
-                        Repeater {
-                            model: root.data ? root.data.providers : []
-                            Card {
-                                required property var modelData
-                                Layout.fillWidth: true
-                                implicitHeight: providerColumn.implicitHeight + 36
-                                Layout.fillHeight: true
-                                Column {
-                                    id: providerColumn
-                                    anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 18
-                                    spacing: 10
-                                    Row {
-                                        spacing: 8
-                                        Rectangle { width: 8; height: 8; radius: 4; color: root.colorFor(modelData.id); anchors.verticalCenter: parent.verticalCenter }
-                                        Label { text: modelData.name; font.pixelSize: 16; font.weight: Font.DemiBold }
-                                    }
-                                    Row {
-                                        spacing: 10
-                                        Label { text: root.compact(modelData.tokens); font.pixelSize: 26; font.weight: Font.Medium }
-                                        Sub { text: "tokens"; anchors.bottom: parent.bottom; anchors.bottomMargin: 3 }
-                                    }
-                                    Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.valueText(modelData) + " API value · " + modelData.sessions + " sessions" }
-                                    Sub { width: parent.width; wrapMode: Text.WordWrap; text: modelData.valueShare === null ? "No priced API value" : modelData.valueShare.toFixed(1)+"% of priced API value" }
-                                    Sub { width: parent.width; wrapMode: Text.WordWrap; text: modelData.sessions ? root.compact(modelData.tokensPerSession)+" tokens · "+root.money(modelData.valuePerSession)+" priced value / recorded session" : "No recorded sessions" }
-                                    Rectangle { width: parent.width; height: 3; radius: 2; color: root.edge
-                                        Rectangle { width: parent.width*(root.data.summary.tokens ? modelData.tokens/root.data.summary.tokens : 0); height: 3; radius: 2; color: root.colorFor(modelData.id) }
-                                    }
-                                    Sub {
-                                        width: parent.width; wrapMode: Text.WordWrap
-                                        text: modelData.monthlyPrice !== null ? root.money(modelData.monthlyPrice)+"/month plan · "+(modelData.monthlyPrice>0?(modelData.value/modelData.monthlyPrice).toFixed(1)+"× plan price in this period":"no plan charge") : "Monthly plan price not set"
-                                    }
-                                    Sub { visible: modelData.id === "grok"; width: parent.width; wrapMode: Text.WordWrap; text: root.compact(modelData.modelCalls || 0)+" model calls · "+modelData.requests+" usage records" }
-                                    Sub { visible: !root.selection.account; text: modelData.quotaScope }
-                                    Repeater {
-                                        model: modelData.quota.limits || []
-                                        Column {
-                                            required property var modelData
-                                            width: providerColumn.width; spacing: 4
-                                            RowLayout { width: parent.width
-                                                Sub { text: modelData.label }
-                                                Item { Layout.fillWidth: true }
-                                                Label { text: (modelData.percent*100).toFixed(0)+"% used"; font.pixelSize: 11 }
-                                            }
-                                            Rectangle { width: parent.width; height: 4; radius: 2; color: root.edge
-                                                Rectangle { height: 4; radius: 2; width: parent.width*Math.min(1,Math.max(0,modelData.percent)); color: modelData.percent>=0.9 ? root.colorFor("claude") : Qt.alpha(root.ink,0.55) }
-                                            }
-                                            Sub { text: root.resetText(modelData.resetsAt); font.pixelSize: 10 }
+                    Card {
+                        width: parent.width; height: providersColumn.implicitHeight + 36
+                        Column {
+                            id: providersColumn
+                            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 18
+                            spacing: 4
+                            Label { text: "Providers"; font.pixelSize: 15; font.weight: Font.DemiBold }
+                            GridLayout {
+                                width: parent.width
+                                columns: width > 700 ? 2 : 1
+                                columnSpacing: 24; rowSpacing: 2
+                                Repeater {
+                                    model: root.data ? root.data.providers : []
+                                    Item {
+                                        id: providerRow
+                                        required property var modelData
+                                        Layout.fillWidth: true
+                                        implicitHeight: 30
+
+                                        readonly property var quotaLimits: modelData.quota ? (modelData.quota.limits || []) : []
+                                        readonly property real worstQuota: quotaLimits.length ? Math.max.apply(null, quotaLimits.map(function(l) { return l.percent })) : -1
+                                        readonly property string quotaDetail: {
+                                            var p = modelData
+                                            var parts = []
+                                            if (!root.selection.account && p.quotaScope) parts.push(p.quotaScope)
+                                            if (p.quota) parts.push(p.quota.error || root.quotaAge(p.quota))
+                                            if (p.id === "grok") parts.push(root.compact(p.modelCalls || 0)+" model calls · "+p.requests+" usage records")
+                                            return parts.join(" · ")
                                         }
+                                        readonly property var tipRows: [
+                                            {label:"Sessions", value:String(modelData.sessions)},
+                                            {label:"Tokens / session", value:modelData.sessions ? root.compact(modelData.tokensPerSession) : "—"},
+                                            {label:"Priced value / session", value:modelData.sessions ? root.money(modelData.valuePerSession) : "—"},
+                                            {label:"Share of priced value", value:modelData.valueShare === null ? "No priced value" : modelData.valueShare.toFixed(1)+"%"},
+                                            {label:"Plan", value:modelData.monthlyPrice !== null ? root.money(modelData.monthlyPrice)+"/month · "+(modelData.monthlyPrice>0?(modelData.value/modelData.monthlyPrice).toFixed(1)+"× price this period":"no charge") : "Monthly plan price not set"}
+                                        ].concat(quotaLimits.map(function(l) { return {label:l.label, value:Math.round(l.percent*100)+"% used · "+root.resetText(l.resetsAt)} }))
+
+                                        Rectangle { anchors.fill: parent; radius: 3; color: providerRowHover.hovered ? Qt.alpha(root.ink,0.05) : "transparent" }
+                                        RowLayout {
+                                            anchors.fill: parent; anchors.leftMargin: 6; anchors.rightMargin: 6; spacing: 10
+                                            Rectangle { width: 7; height: 7; radius: 1; color: root.colorFor(providerRow.modelData.id) }
+                                            Label { text: providerRow.modelData.name; font.pixelSize: 13; Layout.fillWidth: true; elide: Text.ElideRight }
+                                            Sub {
+                                                visible: providerRow.worstQuota >= 0
+                                                text: Math.round(providerRow.worstQuota*100)+"%"
+                                                color: providerRow.worstQuota >= 0.9 ? root.colorFor("claude") : root.muted
+                                                font.pixelSize: 11; Layout.preferredWidth: 38; horizontalAlignment: Text.AlignRight
+                                            }
+                                            Label { text: root.compact(providerRow.modelData.tokens); font.pixelSize: 13; Layout.preferredWidth: 58; horizontalAlignment: Text.AlignRight }
+                                            Sub { text: root.valueText(providerRow.modelData); font.pixelSize: 11; Layout.preferredWidth: 110; horizontalAlignment: Text.AlignRight; elide: Text.ElideRight }
+                                        }
+                                        Rectangle {
+                                            anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom
+                                            anchors.leftMargin: 6; anchors.rightMargin: 6
+                                            height: 2; radius: 1; color: root.edge
+                                            Rectangle { height: 2; radius: 1; width: parent.width*(root.data && root.data.summary.tokens ? providerRow.modelData.tokens/root.data.summary.tokens : 0); color: root.colorFor(providerRow.modelData.id) }
+                                        }
+                                        HoverTip {
+                                            parent: providerRow
+                                            visible: providerRowHover.hovered
+                                            y: parent.height + 8
+                                            heading: providerRow.modelData.name
+                                            detail: providerRow.quotaDetail
+                                            rows: providerRow.tipRows
+                                        }
+                                        HoverHandler { id: providerRowHover; cursorShape: Qt.PointingHandCursor }
+                                        TapHandler { onTapped: { root.provider = providerRow.modelData.id; root.refresh() } }
                                     }
-                                    Sub { width: parent.width; wrapMode: Text.WordWrap; text: modelData.quota.error || root.quotaAge(modelData.quota); font.pixelSize: 10 }
                                 }
                             }
                         }
@@ -567,19 +675,18 @@ Scope {
                             }
                         }
                     }
-                    Card {
-                        width: parent.width; height: tableColumn.implicitHeight + 36
-                        Column {
-                            id: tableColumn
-                            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 18; spacing: 10
-                            RowLayout {
-                                width: parent.width
-                                Label { text: "Breakdown"; font.pixelSize: 16; font.weight: Font.DemiBold }
-                                Item { Layout.fillWidth: true }
-                                Repeater { model: ["models","projects","clients","routes","accounts","sessions"]
-                                    Choice { required property string modelData; text: modelData[0].toUpperCase()+modelData.slice(1); selected: root.breakdown===modelData; onClicked: { root.breakdown=modelData; root.tableLimit=20 } }
-                                }
+                    SectionCard {
+                        width: parent.width
+                        sectionKey: "breakdown"
+                        title: "Breakdown"
+                        hint: root.data ? (root.data[root.breakdown] || []).length + " " + root.breakdown : ""
+                        RowLayout {
+                            width: parent.width
+                            Item { Layout.fillWidth: true }
+                            Repeater { model: ["models","projects","clients","routes","accounts","sessions"]
+                                Choice { required property string modelData; text: modelData[0].toUpperCase()+modelData.slice(1); selected: root.breakdown===modelData; onClicked: { root.breakdown=modelData; root.tableLimit=20 } }
                             }
+                        }
                             RowLayout { width: parent.width
                                 Sub { text: root.breakdown === "models" ? "MODEL" : root.breakdown === "projects" ? "PROJECT" : root.breakdown === "sessions" ? "SESSION / PROJECT" : root.breakdown === "routes" ? "SOURCE ROUTE" : root.breakdown === "accounts" ? "ACCOUNT" : "CLIENT"; Layout.fillWidth: true }
                                 Sub { text: "TOKENS"; Layout.preferredWidth: 95; horizontalAlignment: Text.AlignRight }
@@ -590,7 +697,7 @@ Scope {
                                 model: root.data ? (root.data[root.breakdown] || []).slice(0,root.tableLimit) : []
                                 Rectangle {
                                     required property var modelData
-                                    width: tableColumn.width; height: root.breakdown === "sessions" ? 62 : 43; color: rowHover.hovered ? Qt.alpha(root.ink,0.04) : "transparent"
+                                    width: parent.width; height: root.breakdown === "sessions" ? 62 : 43; color: rowHover.hovered ? Qt.alpha(root.ink,0.04) : "transparent"
                                     Behavior on color { ColorAnimation { duration: 100 } }
                                     Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: root.edge; opacity: 0.55 }
                                     RowLayout {
@@ -628,23 +735,22 @@ Scope {
                             Choice { visible: !!root.data && (root.data[root.breakdown] || []).length > root.tableLimit; text: "Show 20 more"; onClicked: root.tableLimit += 20 }
                             Sub { width: parent.width; wrapMode: Text.WordWrap; text: "A recorded session is not a completed task. Averages cover this period; priced value excludes unknown prices." }
                             Sub { visible: !!root.data && !(root.data[root.breakdown] || []).length; text: "No recorded activity in this period." }
-                        }
                     }
-                    Card {
-                        width: parent.width; height: 150
+                    SectionCard {
+                        width: parent.width
+                        sectionKey: "heatmap"
+                        title: "Activity over the past year"
+                        hint: "Darker to brighter = more tokens"
                         Column {
-                            anchors.fill: parent; anchors.margins: 18; spacing: 12
-                            RowLayout { width: parent.width
-                                Label { text: "Activity over the past year"; font.pixelSize: 15; font.weight: Font.DemiBold }
-                                Item { Layout.fillWidth: true }
-                                Sub { text: "Darker to brighter = more tokens" }
-                            }
+                            width: parent.width; spacing: 12
                             Canvas {
                                 id: heatmap
                                 width: parent.width; height: 80
                                 property var activity: root.data ? root.data.heatmap : ({})
+                                property bool sectionExpanded: !root.isCollapsed("heatmap")
                                 onActivityChanged: requestPaint()
                                 onWidthChanged: requestPaint()
+                                onSectionExpandedChanged: requestPaint()
                                 property string hoverText: ""
                                 property real pointerX: 0
                                 property string hoverDate: ""
@@ -683,18 +789,19 @@ Scope {
                             }
                         }
                     }
-                    Card {
-                        width: parent.width; height: coverageColumn.implicitHeight+36
+                    SectionCard {
+                        width: parent.width
+                        sectionKey: "coverage"
+                        title: "Data coverage"
+                        hint: root.data ? (root.data.coverage.sources||[]).length + " sources · " + (root.data.coverage.clients||[]).length + " clients" : ""
                         Column {
-                            id: coverageColumn
-                            anchors.left: parent.left; anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 18; spacing: 9
-                            Label { text: "Data coverage"; font.pixelSize: 15; font.weight: Font.DemiBold }
+                            width: parent.width; spacing: 9
                             Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.data ? "Local history on "+root.data.coverage.machine+". Additional configured homes: "+(root.data.coverage.additionalHomes||0)+". A scan reads available folders; it does not sync another machine. Normal ChatGPT chats are not included." : "Reading sources…" }
                             Repeater {
                                 model: root.data ? root.data.coverage.sources || [] : []
                                 Column {
                                     required property var modelData
-                                    width: coverageColumn.width; spacing: 4
+                                    width: parent.width; spacing: 4
                                     Label { width: parent.width; elide: Text.ElideMiddle; font.pixelSize: 12; text: modelData.path; color: modelData.status === "available" ? root.ink : root.colorFor("claude") }
                                     Sub { width: parent.width; wrapMode: Text.WordWrap; text: (modelData.status || "Unknown")+" · "+modelData.files+(modelData.kind === "database" ? " database" : " files")+(modelData.latestFileAt ? " · latest file change "+root.when(modelData.latestFileAt) : "") }
                                 }
@@ -702,13 +809,13 @@ Scope {
                             Label { text: "Indexed clients · all retained history"; font.pixelSize: 14 }
                             Repeater {
                                 model: root.data ? root.data.coverage.clients || [] : []
-                                Sub { required property var modelData; width: coverageColumn.width; wrapMode: Text.WordWrap; text: modelData.provider+" / "+modelData.client+" · "+modelData.sessions+" sessions · latest event "+root.when(modelData.lastAt) }
+                                Sub { required property var modelData; width: parent.width; wrapMode: Text.WordWrap; text: modelData.provider+" / "+modelData.client+" · "+modelData.sessions+" sessions · latest event "+root.when(modelData.lastAt) }
                             }
                             Sub { width: parent.width; wrapMode: Text.WordWrap; text: root.data ? "Pricing: "+root.data.pricing.source+(root.data.pricing.fetchedAtMs?" · "+Qt.formatDateTime(new Date(root.data.pricing.fetchedAtMs),"MMM d, yyyy"):"")+". Estimates use this catalog's rates, not historical billing rates." : "" }
                             Sub { width: parent.width; wrapMode: Text.WordWrap; text: "Grok, OpenCode, Pi, and Oh My Pi use recorded API estimates when available. Their recorded totals do not provide cache savings. Usage records are message snapshots or completed Grok turns, not equivalent request counts. Turns without detailed usage are excluded." }
                             Repeater {
                                 model: root.data ? root.data.pricing.unpriced || [] : []
-                                Sub { required property var modelData; width: coverageColumn.width; wrapMode: Text.WordWrap; text: modelData.provider+" / "+modelData.name+": "+root.compact(modelData.unpricedTokens)+" unpriced tokens" }
+                                Sub { required property var modelData; width: parent.width; wrapMode: Text.WordWrap; text: modelData.provider+" / "+modelData.name+": "+root.compact(modelData.unpricedTokens)+" unpriced tokens" }
                             }
                             Label { width: parent.width; wrapMode: Text.WordWrap; font.pixelSize: 12; color: root.colorFor("claude"); visible: !!root.data && root.data.unknownModels.length>0; text: root.data ? "Unpriced models: "+root.data.unknownModels.join(", ")+". Their tokens are included; their API value is not." : "" }
                             Label { width: parent.width; wrapMode: Text.WordWrap; font.pixelSize: 12; color: root.colorFor("claude"); visible: !!root.data && (root.data.coverage.warnings||[]).length>0; text: root.data ? (root.data.coverage.warnings||[]).join("\n") : "" }

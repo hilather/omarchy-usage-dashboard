@@ -907,6 +907,30 @@ class CollectorTests(unittest.TestCase):
             self.assertEqual(config['ompHomes'], ['/mounted/.omp/agent'])
             self.assertEqual(config['enabled'], list(c.PROVIDERS))
 
+    def test_collapsed_sections_round_trip(self):
+        with patch.object(c, 'CONFIG', self.root / 'settings.json'):
+            config = c.save_settings(c.DEFAULTS | {'collapsedSections': ['coverage', 'bogus', 'breakdown']})
+            self.assertEqual(config['collapsedSections'], ['breakdown', 'coverage'])
+            self.assertIsNone(c.save_settings(config | {'collapsedSections': None})['collapsedSections'])
+            self.assertIsNone(c.save_settings(c.DEFAULTS)['collapsedSections'])
+            self.assertEqual(c.save_settings(c.DEFAULTS | {'collapsedSections': 'coverage'})['collapsedSections'], [])
+
+    def test_merge_save_preserves_on_disk_settings(self):
+        import contextlib
+        import io as stdlib_io
+        import sys
+        with patch.object(c, 'CONFIG', self.root / 'settings.json'), patch.object(c, 'STATE', self.root / 'state'):
+            c.save_settings(c.DEFAULTS | {'enabled': ['grok'], 'windowOpacity': 0.7})
+            out = stdlib_io.StringIO()
+            argv = ['collector.py', 'settings', '--merge', '--save={"collapsedSections":["breakdown","bogus"]}']
+            with patch.object(sys, 'argv', argv), contextlib.redirect_stdout(out):
+                c.main()
+            saved = json.loads(out.getvalue())
+            self.assertEqual(saved['collapsedSections'], ['breakdown'])
+            self.assertEqual(saved['enabled'], ['grok'])
+            self.assertEqual(saved['windowOpacity'], 0.7)
+            self.assertEqual(c.settings()['collapsedSections'], ['breakdown'])
+
     def test_opencode_legacy_and_database_copies_merge(self):
         root = self.root / 'data/opencode'; root.mkdir(parents=True)
         item = {'id': 'm1', 'sessionID': 's', 'role': 'assistant', 'providerID': 'openrouter',

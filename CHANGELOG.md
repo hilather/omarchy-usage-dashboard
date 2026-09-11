@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Compact provider rows and collapsible detail sections keep the dashboard readable on small screens; collapsed state is remembered.
+- Devin session history, plan tier, and account-catalog pricing.
+- An All overview tab in the bar widget, plus provider tabs that wrap instead of overflowing.
 - Named history accounts with multiple folders, account comparisons, and filters.
 - Deduplicate mirrored history and flag conflicting account assignments.
 - API-value shares and tokens/value per recorded session.

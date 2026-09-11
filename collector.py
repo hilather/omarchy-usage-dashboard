@@ -29,7 +29,9 @@ PROVIDERS = {'codex': 'Codex', 'claude': 'Claude', 'opencode-go': 'OpenCode Go',
              'devin': 'Devin'}
 HOME_KEYS = ('codexHomes', 'claudeHomes', 'grokHomes', 'geminiHomes', 'opencodeHomes', 'piHomes', 'ompHomes', 'museHomes', 'devinHomes')
 DEFAULTS = {'enabled': ['codex', 'claude', 'opencode-go'], 'monthlyPrices': {},
-            **{key: [] for key in HOME_KEYS}, 'accounts': [], 'localAccountLabel': 'Local', 'windowOpacity': 0.985}
+            **{key: [] for key in HOME_KEYS}, 'accounts': [], 'localAccountLabel': 'Local', 'windowOpacity': 0.985,
+            'collapsedSections': None}
+SECTION_KEYS = ('breakdown', 'heatmap', 'coverage')
 FIELDS = ('input', 'output', 'cacheRead', 'cacheWrite', 'cacheWrite1h', 'reasoning')
 
 
@@ -69,7 +71,9 @@ def save_settings(value):
     clean = {'enabled': [p for p in value.get('enabled', []) if p in PROVIDERS],
              'monthlyPrices': {}, **{key: [] for key in HOME_KEYS},
              'accounts': [], 'localAccountLabel': str(value.get('localAccountLabel') or 'Local').strip(),
-             'windowOpacity': max(0.55, min(1.0, float(value.get('windowOpacity', 0.985))))}
+             'windowOpacity': max(0.55, min(1.0, float(value.get('windowOpacity', 0.985)))),
+             'collapsedSections': (None if value.get('collapsedSections') is None else
+                                   sorted({s for s in value['collapsedSections'] if s in SECTION_KEYS}))}
     for provider, amount in value.get('monthlyPrices', {}).items():
         if provider in PROVIDERS and amount is not None and 0 <= float(amount) <= 100000:
             clean['monthlyPrices'][provider] = float(amount)
@@ -1161,11 +1165,17 @@ def main():
     parser.add_argument('--days', type=int, choices=[1, 7, 30, 90, 365], default=7)
     parser.add_argument('--provider', choices=['all', *PROVIDERS], default='all')
     for field in ('model', 'project', 'client', 'apiProvider', 'day', 'account'): parser.add_argument('--' + field)
-    parser.add_argument('--save'); parser.add_argument('--force', action='store_true')
+    parser.add_argument('--save'); parser.add_argument('--merge', action='store_true'); parser.add_argument('--force', action='store_true')
     args = parser.parse_args()
     STATE.mkdir(parents=True, exist_ok=True)
     if args.action == 'settings':
-        try: print(json.dumps(save_settings(json.loads(args.save)) if args.save else settings()))
+        try:
+            if not args.save: print(json.dumps(settings())); return
+            value = json.loads(args.save)
+            with (STATE / 'collector.lock').open('w') as lock:
+                fcntl.flock(lock, fcntl.LOCK_EX)
+                if args.merge: value = settings() | value
+                print(json.dumps(save_settings(value)))
         except (ValueError, TypeError, KeyError) as error:
             print(json.dumps({'error': str(error)})); raise SystemExit(1)
         return
