@@ -442,6 +442,36 @@ class CollectorTests(unittest.TestCase):
             c.main()
         self.assertTrue(used)
 
+    def test_main_auto_enable_includes_connected_go(self):
+        import contextlib
+        import io as stdlib_io
+        import sys
+        seed = c.Ledger(self.root / 'state/usage.sqlite')
+        seed.put(c.record('e1', 'codex', 's', 1788810000, 'unknown', '', 'Codex', input=100))
+        seed.db.commit()
+        seed.db.close()
+        env = {'XDG_DATA_HOME': str(self.root / 'data'), 'XDG_CONFIG_HOME': str(self.root / 'config'),
+               'CODEX_HOME': str(self.root / 'codex'), 'CLAUDE_CONFIG_DIR': str(self.root / 'claude'),
+               'GROK_HOME': str(self.root / 'grok'), 'PI_CODING_AGENT_DIR': str(self.root / 'pi')}
+        def run_report():
+            out = stdlib_io.StringIO()
+            with patch.object(c, 'STATE', self.root / 'state'), \
+                 patch.object(c, 'CONFIG', self.root / 'missing-settings.json'), \
+                 patch.object(c, 'HOME', self.root), \
+                 patch.dict('os.environ', env), \
+                 patch.object(sys, 'argv', ['collector.py', 'report', '--days', '7']), \
+                 contextlib.redirect_stdout(out):
+                c.main()
+            return json.loads(out.getvalue())
+        # No credentials on disk: Go stays disabled until it is connected.
+        self.assertNotIn('opencode-go', run_report()['settings']['enabled'])
+        auth = self.root / 'data/opencode/auth.json'
+        auth.parent.mkdir(parents=True)
+        auth.write_text(json.dumps({'opencode-go': {'type': 'api', 'key': 'test-key'}}))
+        connected = run_report()
+        self.assertEqual(connected['settings']['enabled'], ['codex', 'opencode-go'])
+        self.assertIn('opencode-go', [p['id'] for p in connected['providers']])
+
     def test_cursor_token_missing_warns_and_skips_network(self):
         ledger = c.Ledger(self.root / 'notoken.sqlite')
         with patch.object(c, 'STATE', self.root / 'state'), \

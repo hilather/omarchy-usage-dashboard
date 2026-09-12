@@ -784,15 +784,21 @@ def finish(b):
                 'valuePerSession': b['value'] / len(b['sessions']) if b['sessions'] else None}
 
 
+def go_api_key():
+    try:
+        auth = json.loads((Path(os.getenv('XDG_DATA_HOME', HOME / '.local/share')) / 'opencode/auth.json').read_text())
+        entry = auth.get('opencode-go') or {}
+        return str(entry['key']) if entry.get('type') == 'api' and entry.get('key') else None
+    except (OSError, ValueError): return None
+
+
 def go_quota(force=False):
     path = STATE / 'go-quota.json'
     try: cached = json.loads(path.read_text())
     except (OSError, ValueError): cached = {}
     if not force and time.time() - cached.get('attemptedAt', 0) < 300: return cached
     try:
-        auth_path = Path(os.getenv('XDG_DATA_HOME', HOME / '.local/share')) / 'opencode/auth.json'
-        auth = json.loads(auth_path.read_text()).get('opencode-go', {})
-        key = auth.get('key') if auth.get('type') == 'api' else None
+        key = go_api_key()
         if not key: raise ValueError('Connect OpenCode Go in OpenCode to read quota.')
         request = urllib.request.Request('https://opencode.ai/zen/go/v1/usage',
                     headers={'Authorization': 'Bearer ' + key, 'User-Agent': 'Omarchy-AI-Usage/0.1'})
@@ -1186,7 +1192,11 @@ def main():
             # Auto-enable runs before the scan so sources with recorded
             # history are collected on a fresh install, as documented.
             found = {r[0] for r in ledger.db.execute('SELECT DISTINCT provider FROM events')}
-            cfg = cfg | {'enabled': [p for p in PROVIDERS if p in found] or cfg['enabled']}
+            enabled = [p for p in PROVIDERS if p in found] or cfg['enabled']
+            # A connected Go login has quota worth showing before its first
+            # recorded session lands.
+            if 'opencode-go' not in enabled and go_api_key(): enabled = enabled + ['opencode-go']
+            cfg = cfg | {'enabled': enabled}
         if args.action in ('scan', 'report'): ledger.scan(cfg)
         if args.action in ('go', 'scan'):
             go_quota(args.force)
